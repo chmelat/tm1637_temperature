@@ -1,123 +1,123 @@
-# Systemd Setup pro TM1637 Temperature Display
+# Systemd Setup for TM1637 Temperature Display
 
-## Instalace a konfigurace
+## Installation and Configuration
 
-### 1. Příprava projektu
+### 1. Project Preparation
 ```bash
-# Zkompilovat projekt
+# Compile project
 make
 
-# Otestovat manuálně (připojte displej s pull-up rezistory)
+# Test manually (connect display with pull-up resistors)
 sudo ./tm1637_temperature
 ```
 
-### 2. Instalace systemd service
+### 2. Systemd Service Installation
 ```bash
-# Zkopírovat service soubor
+# Copy service file
 sudo cp tm1637_temperature.service /etc/systemd/system/
 
-# Načíst novou konfiguraci
+# Reload configuration
 sudo systemctl daemon-reload
 
-# Povolit autostart po bootu
+# Enable autostart on boot
 sudo systemctl enable tm1637_temperature.service
 
-# Spustit službu
+# Start service
 sudo systemctl start tm1637_temperature.service
 ```
 
-### 3. Ověření konfigurace
+### 3. Configuration Verification
 ```bash
-# Kontrola stavu služby
+# Check service status
 sudo systemctl status tm1637_temperature.service
 
-# Sledování logů v reálném čase
+# Monitor logs in real-time
 sudo journalctl -u tm1637_temperature -f
 
-# Zobrazit poslední logy
+# Display recent logs
 sudo journalctl -u tm1637_temperature -n 20
 ```
 
-## Očekávané chování
+## Expected Behavior
 
-### S připojeným displejem
+### With Connected Display
 ```
 ● tm1637_temperature.service - TM1637 Temperature Display Service
    Loaded: loaded
    Active: active (running)
-   
+
 Logs:
-TM1637 piny validovany a inicializovany (GPIO 24=DIO, GPIO 23=CLK)
+TM1637 pins validated and initialized (GPIO 24=DIO, GPIO 23=CLK)
 ```
 
-### Bez připojeného displeje
+### Without Connected Display
 ```
-● tm1637_temperature.service - TM1637 Temperature Display Service  
+● tm1637_temperature.service - TM1637 Temperature Display Service
    Loaded: loaded
    Active: failed (Result: start-limit-hit)
-   
+
 Logs:
-Chyba: Chybi pull-up rezistory
+Error: Missing pull-up resistors
 GPIO 24 (DIO): LOW, GPIO 23 (CLK): LOW
 ```
 
-**Chování:** 2 pokusy po 10 minutách, pak 24h pauza
+**Behavior:** 2 attempts after 10 minutes, then 24h pause
 
-## Správa služby
+## Service Management
 
-### Základní příkazy
+### Basic Commands
 ```bash
-# Restart služby
+# Restart service
 sudo systemctl restart tm1637_temperature.service
 
-# Zastavení služby  
+# Stop service
 sudo systemctl stop tm1637_temperature.service
 
-# Spuštění služby
+# Start service
 sudo systemctl start tm1637_temperature.service
 
-# Zakázat autostart
+# Disable autostart
 sudo systemctl disable tm1637_temperature.service
 
-# Povolí autostart
+# Enable autostart
 sudo systemctl enable tm1637_temperature.service
 ```
 
-### Při připojení displeje (pokud je služba stopped)
+### When Connecting Display (if service is stopped)
 ```bash
-# Manuální restart
+# Manual restart
 sudo systemctl restart tm1637_temperature.service
 
-# Nebo resetovat start-limit a spustit
+# Or reset start-limit and start
 sudo systemctl reset-failed tm1637_temperature.service
 sudo systemctl start tm1637_temperature.service
 ```
 
 ### Troubleshooting
 ```bash
-# Detailní status
+# Detailed status
 sudo systemctl status tm1637_temperature.service -l
 
-# Všechny logy od posledního bootu
+# All logs since last boot
 sudo journalctl -u tm1637_temperature -b
 
-# Logy s časovými razítky
+# Logs with timestamps
 sudo journalctl -u tm1637_temperature --since "1 hour ago"
 
-# Test syntaxe systemd souboru
+# Test systemd file syntax
 sudo systemd-analyze verify /etc/systemd/system/tm1637_temperature.service
 ```
 
-## Hardware požadavky
+## Hardware Requirements
 
-- TM1637 CLK → GPIO 23 + 4.7kΩ pull-up na 3.3V
-- TM1637 DIO → GPIO 24 + 4.7kΩ pull-up na 3.3V  
-- External temperature sensor binary `r4dcb08` v projektové složce
-- Root/sudo přístup pro GPIO operace
+- TM1637 CLK → GPIO 23 + 4.7kΩ pull-up to 3.3V
+- TM1637 DIO → GPIO 24 + 4.7kΩ pull-up to 3.3V
+- External temperature sensor binary `r4dcb08` in project directory
+- Root/sudo access for GPIO operations
 
-## Poznámky
+## Notes
 
-- Service vyžaduje root privileges kvůli GPIO přístupu
-- Pull-up rezistory jsou povinné pro detekci připojeného displeje
-- Service se automaticky restartuje při připojení displeje během prvních 20 minut po bootu
-- Po start-limit-hit je nutný manuální restart služby
+- Service requires root privileges for GPIO access
+- Pull-up resistors are mandatory for connected display detection
+- Service automatically restarts when display is connected during first 20 minutes after boot
+- After start-limit-hit, manual service restart is required

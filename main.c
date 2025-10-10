@@ -22,9 +22,9 @@ void sigint_handler(int sig) {
  * Print usage information
  */
 void print_usage(const char *progname) {
-    printf("Pouziti: %s [-i interval]\n", progname);
-    printf("  -i interval  Interval mereni v sekundach (vychozi: %d)\n", DEFAULT_INTERVAL);
-    printf("  -h          Zobrazit tuto napovedu\n");
+    printf("Usage: %s [-i interval]\n", progname);
+    printf("  -i interval  Measurement interval in seconds (default: %d)\n", DEFAULT_INTERVAL);
+    printf("  -h          Display this help\n");
 }
 
 /*
@@ -32,7 +32,7 @@ void print_usage(const char *progname) {
  */
 int main(int argc, char *argv[]) {
 
-    int16_t temp; /* Teplota [0.1C] */
+    int16_t temp; /* Temperature [0.1C] */
     int interval = DEFAULT_INTERVAL;
     int opt;
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
             case 'i':
                 interval = atoi(optarg);
                 if (interval <= 0) {
-                    fprintf(stderr, "Chyba: Interval musi byt kladne cislo\n");
+                    fprintf(stderr, "Error: Interval must be a positive number\n");
                     return 1;
                 }
                 break;
@@ -55,22 +55,22 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Zobrazeni teploty na dispeji TM1637 na Raspberry Pi 1 (pigpio)\n");
-    printf("==============================================================\n");
-    printf("Interval mereni: %d sekund\n", interval);
-    printf("Pro ukonceni stiskni Ctrl+C\n\n");
+    printf("Temperature display on TM1637 display on Raspberry Pi 1 (pigpio)\n");
+    printf("==================================================================\n");
+    printf("Measurement interval: %d seconds\n", interval);
+    printf("Press Ctrl+C to exit\n\n");
 
-    // Nastavit SIGINT handler
+    // Set SIGINT handler
     signal(SIGINT, sigint_handler);
 
-    // Inicializace
+    // Initialization
     if (TM1637_init() < 0) {
-        printf("Chyba pri inicializaci knihovny pigpio!\n");
+        printf("Error initializing pigpio library!\n");
         return -1;
     }
 
 
-/* Merici smycka */
+/* Measurement loop */
     while(running) {
       temp = get_temp();
       if (temp != TEMP_ERROR) {
@@ -79,13 +79,13 @@ int main(int argc, char *argv[]) {
         TM1637_write_err();
       }
 
-      // Prerusitelne cekani
+      // Interruptible wait
       for(int i = 0; i < interval && running; i++) {
         sleep(1);
       }
     }
 
-    printf("\nUkoncovani programu...\n");
+    printf("\nExiting program...\n");
     TM1637_cleanup();
     return 0;
 }

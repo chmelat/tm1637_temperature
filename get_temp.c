@@ -7,8 +7,8 @@
 #include "get_temp.h"
 
 /*
- * Fce cte teplotu ze std vystupu prikazu  "./r4dcb08 -f", prevede
- * ji na cele trojciferne cislo o rozmeru [0.1C]
+ * Function reads temperature from stdout of command "./r4dcb08 -f", converts
+ * it to integer three-digit number in units of [0.1C]
  */
 int16_t get_temp() {
 
@@ -16,23 +16,23 @@ int16_t get_temp() {
   char buffer[256];
   float temp;
 
-  // Kontrola existence r4dcb08 binary
+  // Check existence of r4dcb08 binary
   if (access("./r4dcb08", X_OK) != 0) {
     fprintf(stderr, "Error: r4dcb08 binary not found or not executable\n");
     fprintf(stderr, "       Please ensure r4dcb08 is in the current directory with execute permissions\n");
     return TEMP_ERROR;
   }
 
-  fp = popen("./r4dcb08 -f", "r");  // Ziskej teplotu
+  fp = popen("./r4dcb08 -f", "r");  // Get temperature
   if (fp == NULL) {
     perror("Error: popen failed!");
     return TEMP_ERROR;
   }
-    
-  // Přečte první řádek
+
+  // Read first line
   if (fgets(buffer, sizeof(buffer), fp) != NULL) {
     printf("%s\n",buffer);
-    // Najde první float v řádku
+    // Find first float in line
     if (sscanf(buffer, "%f", &temp) == 1) {
       if (pclose(fp) != 0) {
         fprintf(stderr, "Error: r4dcb08 command failed\n");

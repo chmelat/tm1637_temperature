@@ -1,52 +1,52 @@
 # TM1637 Temperature Display for Raspberry Pi
 
-Zobrazování teploty na 4-ciferném 7-segmentovém TM1637 displeji pro Raspberry Pi pomocí knihovny pigpio. Program čte teplotu z externího senzoru a zobrazuje ji s rozlišením 0.1°C.
+Temperature display on 4-digit 7-segment TM1637 display for Raspberry Pi using the pigpio library. The program reads temperature from an external sensor and displays it with 0.1°C resolution.
 
-**⚠️ KOMPATIBILITA:** Funguje na Raspberry Pi 1, 2, 3, 4. **Nefunguje na RPi5** (pigpio není kompatibilní s RPi5 k datu 2025-10-09).
+**⚠️ COMPATIBILITY:** Works on Raspberry Pi 1, 2, 3, 4. **Does NOT work on RPi5** (pigpio is not compatible with RPi5 as of 2025-10-09).
 
-## Vlastnosti
+## Features
 
-- ✅ **Vysoká přesnost**: Zobrazení teploty s rozlišením 0.1°C
-- ✅ **Konfigurovatelné GPIO piny**: Možnost změny pinů při kompilaci
-- ✅ **Konfigurovatelný interval**: Nastavitelný interval měření z příkazové řádky
-- ✅ **Open-drain komunikace**: Implementace TM1637 protokolu s externími pull-up rezistory
-- ✅ **Robust error handling**: Zobrazení "Err" při chybě čtení teploty
-- ✅ **Systemd podpora**: Připravený service soubor pro automatický start
-- ✅ **Graceful shutdown**: Korektní ukončení při Ctrl+C
-- ✅ **Hardware validace**: Kontrola přítomnosti pull-up rezistorů při startu
+- ✅ **High precision**: Temperature display with 0.1°C resolution
+- ✅ **Configurable GPIO pins**: Ability to change pins at compile time
+- ✅ **Configurable interval**: Adjustable measurement interval from command line
+- ✅ **Open-drain communication**: TM1637 protocol implementation with external pull-up resistors
+- ✅ **Robust error handling**: Displays "Err" on temperature reading failure
+- ✅ **Systemd support**: Ready-made service file for automatic startup
+- ✅ **Graceful shutdown**: Correct termination with Ctrl+C
+- ✅ **Hardware validation**: Pull-up resistor presence check at startup
 
-## Hardware požadavky
+## Hardware Requirements
 
 ### Raspberry Pi
-- Raspberry Pi 1, 2, 3, nebo 4
-- **⚠️ POZOR:** Raspberry Pi 5 **NENÍ PODPOROVÁNO** - knihovna pigpio nefunguje správně na RPi5 (k datu 2025-10-09)
+- Raspberry Pi 1, 2, 3, or 4
+- **⚠️ WARNING:** Raspberry Pi 5 **IS NOT SUPPORTED** - pigpio library does not work correctly on RPi5 (as of 2025-10-09)
 - Raspbian/Raspberry Pi OS
-- Root přístup pro GPIO operace
+- Root access for GPIO operations
 
-### TM1637 displej
-- 4-ciferný 7-segmentový displej s TM1637 řadičem
-- **Napájení pouze 3.3V** (5V může poškodit GPIO piny RPi!)
-- 2x 4.7kΩ pull-up rezistory
+### TM1637 Display
+- 4-digit 7-segment display with TM1637 controller
+- **Power only at 3.3V** (5V may damage RPi GPIO pins!)
+- 2x 4.7kΩ pull-up resistors
 
-### Externí teplotní senzor
-- Binárka `r4dcb08` pro čtení teploty
-- Výstup ve formátu float na stdout
+### External Temperature Sensor
+- Binary `r4dcb08` for temperature reading
+- Output in float format to stdout
 
-## Zapojení hardware
+## Hardware Wiring
 
-**⚠️ VAROVÁNÍ:** Používejte pouze **3.3V napájení** pro TM1637! Napájení 5V může **trvale poškodit GPIO piny** Raspberry Pi!
+**⚠️ WARNING:** Use only **3.3V power** for TM1637! 5V power can **permanently damage GPIO pins** of Raspberry Pi!
 
 ```
-TM1637 Displej    Raspberry Pi      Pull-up rezistor
+TM1637 Display    Raspberry Pi      Pull-up Resistor
 ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
 │ VCC         │───│ 3.3V (Pin 1) │   │              │
 │ GND         │───│ GND (Pin 6)  │   │              │
-│ CLK         │───│ GPIO 23      │───│ 4.7kΩ na 3.3V│
-│ DIO         │───│ GPIO 24      │───│ 4.7kΩ na 3.3V│
+│ CLK         │───│ GPIO 23      │───│ 4.7kΩ to 3.3V│
+│ DIO         │───│ GPIO 24      │───│ 4.7kΩ to 3.3V│
 └─────────────┘   └──────────────┘   └──────────────┘
 ```
 
-### Schéma zapojení
+### Wiring Diagram
 
 ```
 3.3V ────┬────────── TM1637 VCC
@@ -58,320 +58,320 @@ TM1637 Displej    Raspberry Pi      Pull-up rezistor
 GND ──────────────────────────────────────── TM1637 GND
 ```
 
-**⚠️ Důležité:** 
-- Pull-up rezistory jsou **povinné** pro správnou open-drain komunikaci!
-- **Nikdy nepoužívejte 5V napájení** - pouze 3.3V!
+**⚠️ Important:**
+- Pull-up resistors are **mandatory** for proper open-drain communication!
+- **Never use 5V power** - only 3.3V!
 
-## Instalace
+## Installation
 
-### 1. Klonování projektu
+### 1. Clone Project
 ```bash
 cd /home/tch/tm1637_temperature
-# nebo zkopírovat soubory ručně
+# or copy files manually
 ```
 
-### 2. Instalace závislostí
+### 2. Install Dependencies
 ```bash
-# Instalace pigpio knihovny
+# Install pigpio library
 sudo apt update
 sudo apt install -y libpigpio-dev libpigpio1
 
-# Nebo použít Makefile
+# Or use Makefile
 make install-pigpio
 ```
 
-### 3. Ověření instalace
+### 3. Verify Installation
 ```bash
 make check-pigpio
 ```
 
-## Kompilace
+## Compilation
 
-### Základní kompilace
+### Basic Compilation
 ```bash
 make
 ```
 
-### Kompilace s vlastními GPIO piny
+### Compile with Custom GPIO Pins
 ```bash
 make CFLAGS="-DDIO_PIN=18 -DCLK_PIN=19"
 ```
 
-### Debug verze
+### Debug Version
 ```bash
 make debug
 ```
 
-### Dostupné Makefile příkazy
+### Available Makefile Commands
 ```bash
-make              # kompilace programu
-make clean        # vyčištění objektových souborů  
-make run          # kompilace a spuštění (60s interval)
-make run-fast     # spuštění s intervalem 10s
-make debug        # kompilace debug verze
-make install-pigpio # instalace pigpio knihovny
-make check-pigpio # kontrola pigpio
-make syntax-check # kontrola syntaxe
-make info         # informace o projektu
-make help         # zobrazí nápovědu
+make              # compile program
+make clean        # clean object files
+make run          # compile and run (60s interval)
+make run-fast     # run with 10s interval
+make debug        # compile debug version
+make install-pigpio # install pigpio library
+make check-pigpio # check pigpio
+make syntax-check # syntax check
+make info         # project information
+make help         # display help
 ```
 
-## Použití
+## Usage
 
-### Základní spuštění
+### Basic Run
 ```bash
-# Výchozí interval 60 sekund
+# Default 60 second interval
 sudo ./tm1637_temperature
 
-# S vlastním intervalem
-sudo ./tm1637_temperature -i 30    # 30 sekund
-sudo ./tm1637_temperature -i 120   # 2 minuty
+# With custom interval
+sudo ./tm1637_temperature -i 30    # 30 seconds
+sudo ./tm1637_temperature -i 120   # 2 minutes
 
-# Zobrazení nápovědy
+# Display help
 ./tm1637_temperature -h
 ```
 
-### Příklady výstupu
+### Example Output
 ```
-Zobrazeni teploty na dispeji TM1637 na Raspberry Pi 1 (pigpio)
-==============================================================
-Interval mereni: 60 sekund
-Pro ukonceni stiskni Ctrl+C
+Temperature display on TM1637 display on Raspberry Pi 1 (pigpio)
+==================================================================
+Measurement interval: 60 seconds
+Press Ctrl+C to exit
 
-TM1637 piny validovany a inicializovany (GPIO 24=DIO, GPIO 23=CLK)
+TM1637 pins validated and initialized (GPIO 24=DIO, GPIO 23=CLK)
 23.5
 ```
 
-### Systemd služba
+### Systemd Service
 
-#### Instalace služby
+#### Service Installation
 ```bash
-# Zkopírovat service soubor
+# Copy service file
 sudo cp tm1637_temperature.service /etc/systemd/system/
 
 # Reload systemd
 sudo systemctl daemon-reload
 
-# Povolit automatický start
+# Enable automatic startup
 sudo systemctl enable tm1637_temperature
 
-# Spustit službu
+# Start service
 sudo systemctl start tm1637_temperature
 ```
 
-#### Správa služby
+#### Service Management
 ```bash
-# Status služby
+# Service status
 sudo systemctl status tm1637_temperature
 
-# Zobrazit logy
+# Display logs
 sudo journalctl -u tm1637_temperature -f
 
-# Zastavit službu
+# Stop service
 sudo systemctl stop tm1637_temperature
 
-# Zakázat automatický start
+# Disable automatic startup
 sudo systemctl disable tm1637_temperature
 ```
 
-## Konfigurace
+## Configuration
 
-### GPIO piny
-Výchozí GPIO piny lze změnit při kompilaci:
+### GPIO Pins
+Default GPIO pins can be changed at compile time:
 
 ```bash
-# Změna na GPIO 18 (DIO) a GPIO 19 (CLK)
+# Change to GPIO 18 (DIO) and GPIO 19 (CLK)
 make CFLAGS="-DDIO_PIN=18 -DCLK_PIN=19"
 ```
 
-### Interval měření
-Interval lze nastavit pomocí argumentu `-i`:
+### Measurement Interval
+Interval can be set using the `-i` argument:
 
 ```bash
-sudo ./tm1637_temperature -i 10     # 10 sekund
-sudo ./tm1637_temperature -i 300    # 5 minut
+sudo ./tm1637_temperature -i 10     # 10 seconds
+sudo ./tm1637_temperature -i 300    # 5 minutes
 ```
 
-### Systemd service konfigurace
-Pro změnu argumentů ve service souboru upravte:
+### Systemd Service Configuration
+To change arguments in service file, edit:
 
 ```ini
 ExecStart=/home/tch/tm1637_temperature/tm1637_temperature -i 30
 ```
 
-## Architektura projektu
+## Project Architecture
 
 ```
 TM1637_temperature/
-├── main.c                    # Hlavní program loop
-├── tm1637_rpi_pigpio.c      # TM1637 protokol implementace  
-├── tm1637_rpi_pigpio.h      # TM1637 header s GPIO definicemi
-├── get_temp.c               # Čtení teploty z ext. senzoru
-├── get_temp.h               # Header pro get_temp
-├── Makefile                 # Build systém
-├── tm1637_temperature.service # Systemd service soubor
-├── CLAUDE.md                # Claude Code instrukce
-└── README.md                # Tento soubor
+├── main.c                    # Main program loop
+├── tm1637_rpi_pigpio.c      # TM1637 protocol implementation
+├── tm1637_rpi_pigpio.h      # TM1637 header with GPIO definitions
+├── get_temp.c               # Temperature reading from ext. sensor
+├── get_temp.h               # Header for get_temp
+├── Makefile                 # Build system
+├── tm1637_temperature.service # Systemd service file
+├── CLAUDE.md                # Claude Code instructions
+└── README.md                # This file
 ```
 
-### Moduly
+### Modules
 
 #### main.c
-- Hlavní program loop s parsing argumentů
-- Signal handling pro graceful shutdown  
-- Volání TM1637 a teplotních funkcí
+- Main program loop with argument parsing
+- Signal handling for graceful shutdown
+- Calling TM1637 and temperature functions
 
 #### tm1637_rpi_pigpio.c/.h
-- Kompletní implementace TM1637 protokolu
-- Open-drain komunikace s pigpio knihovnou
-- Hardware validace pull-up rezistorů
-- Zobrazení čísel a chybových hlášek
+- Complete TM1637 protocol implementation
+- Open-drain communication with pigpio library
+- Hardware validation of pull-up resistors
+- Display of numbers and error messages
 
-#### get_temp.c/.h  
-- Interface pro externí teplotní senzor
-- Volání `./r4dcb08 -f` příkazu
-- Parsing float hodnot z stdout
+#### get_temp.c/.h
+- Interface for external temperature sensor
+- Calling `./r4dcb08 -f` command
+- Parsing float values from stdout
 
 ## Troubleshooting
 
-### Kompatibilita hardware
+### Hardware Compatibility
 
-**⚠️ Raspberry Pi 5 není podporováno**
+**⚠️ Raspberry Pi 5 is not supported**
 ```
-Problém: Knihovna pigpio nefunguje správně na Raspberry Pi 5
-Status: K datu 2025-10-09 není pigpio kompatibilní s RPi5
+Problem: pigpio library does not work correctly on Raspberry Pi 5
+Status: As of 2025-10-09, pigpio is not compatible with RPi5
 ```
 
-**Řešení:**
-- Použít Raspberry Pi 1, 2, 3, nebo 4
-- Na RPi5 zvažte alternativní GPIO knihovny (gpiod, lgpio)
-- Sledovat vývoj pigpio pro budoucí podporu RPi5
+**Solution:**
+- Use Raspberry Pi 1, 2, 3, or 4
+- On RPi5 consider alternative GPIO libraries (gpiod, lgpio)
+- Monitor pigpio development for future RPi5 support
 
-### Program se nespustí
+### Program Won't Start
 
-**Chyba: "Permission denied"**
+**Error: "Permission denied"**
 ```bash
-# Řešení: Spustit s sudo právy
+# Solution: Run with sudo privileges
 sudo ./tm1637_temperature
 ```
 
-**Chyba: "Chyba pri inicializaci knihovny pigpio"**
+**Error: "Error initializing pigpio library"**
 ```bash
-# Kontrola instalace pigpio
+# Check pigpio installation
 make check-pigpio
 
-# Reinstalace pigpio
+# Reinstall pigpio
 make install-pigpio
 ```
 
-### Hardware problémy
+### Hardware Problems
 
-**Chyba: "Chybi pull-up rezistory"**
+**Error: "Missing pull-up resistors"**
 ```
-Chyba: Chybi pull-up rezistory
+Error: Missing pull-up resistors
 GPIO 24 (DIO): LOW, GPIO 23 (CLK): LOW
-Zkontrolujte zapojeni 4.7kΩ pull-up rezistoru na 3.3V
+Check wiring of 4.7kΩ pull-up resistors to 3.3V
 ```
 
-**Řešení:**
-1. Zkontrolovat zapojení 4.7kΩ pull-up rezistorů
-2. Rezistory musí být připojeny mezi GPIO piny a 3.3V
-3. Použít multimetr pro ověření spojů
+**Solution:**
+1. Check wiring of 4.7kΩ pull-up resistors
+2. Resistors must be connected between GPIO pins and 3.3V
+3. Use multimeter to verify connections
 
-**Displej nesvítí**
-1. Zkontrolovat napájení TM1637 (pouze 3.3V!)
-2. Ověřit správnost GPIO pinů v konfiguraci
-3. Zkusit jiný TM1637 displej
+**Display not lit**
+1. Check TM1637 power (only 3.3V!)
+2. Verify correct GPIO pins in configuration
+3. Try another TM1637 display
 
-**⚠️ Poškozené GPIO piny**
-- Pokud jste omylem použili 5V napájení, GPIO piny mohou být trvale poškozeny
-- Symptomy: GPIO piny nereagují, program hlásí chyby inicializace
-- Řešení: Použít jiné GPIO piny nebo vyměnit Raspberry Pi
+**⚠️ Damaged GPIO pins**
+- If you accidentally used 5V power, GPIO pins may be permanently damaged
+- Symptoms: GPIO pins don't respond, program reports initialization errors
+- Solution: Use different GPIO pins or replace Raspberry Pi
 
-### Software problémy
+### Software Problems
 
-**Zobrazuje "Err" na displeji**
+**Displays "Err" on display**
 ```bash
-# Kontrola přítomnosti r4dcb08
+# Check presence of r4dcb08
 ls -la ./r4dcb08
 
-# Test r4dcb08 ručně
+# Test r4dcb08 manually
 ./r4dcb08 -f
 ```
 
-**Vysoké CPU využití**
+**High CPU usage**
 ```bash
-# Zkontrolovat interval měření
-sudo ./tm1637_temperature -i 60    # Delší interval
+# Check measurement interval
+sudo ./tm1637_temperature -i 60    # Longer interval
 ```
 
-### Systemd služba problémy
+### Systemd Service Problems
 
-**Služba se nespouští**
+**Service won't start**
 ```bash
-# Kontrola statusu
+# Check status
 sudo systemctl status tm1637_temperature
 
-# Zobrazení detailních logů
+# Display detailed logs
 sudo journalctl -u tm1637_temperature -n 50
 ```
 
-**Služba se restartuje příliš často**
+**Service restarts too often**
 ```bash
-# Zkontrolovat StartLimitBurst v service souboru
-# Změnit RestartSec na vyšší hodnotu
+# Check StartLimitBurst in service file
+# Change RestartSec to higher value
 ```
 
-## Vývoj
+## Development
 
-### Debug režim
+### Debug Mode
 ```bash
 make debug
 sudo ./tm1637_temperature -i 5
 ```
 
-### Syntax kontrola
+### Syntax Check
 ```bash
 make syntax-check
 ```
 
-### Přidání nových funkcí
-1. Editovat příslušné .c/.h soubory
-2. Aktualizovat Makefile pokud potřeba
-3. Zkompilovat: `make`
-4. Otestovat: `make run`
+### Adding New Features
+1. Edit respective .c/.h files
+2. Update Makefile if needed
+3. Compile: `make`
+4. Test: `make run`
 
-## Bezpečnostní upozornění
+## Security Warning
 
-**⚠️ KRITICKÉ:** 
-- **Vždy používejte pouze 3.3V napájení** pro TM1637 displej
-- **Nikdy nepřipojujte 5V** na GPIO piny Raspberry Pi
-- **5V napájení může trvale poškodit** GPIO piny a celý Raspberry Pi
-- Vždy zkontrolujte napětí multimetrem před připojením
+**⚠️ CRITICAL:**
+- **Always use only 3.3V power** for TM1637 display
+- **Never connect 5V** to Raspberry Pi GPIO pins
+- **5V power can permanently damage** GPIO pins and entire Raspberry Pi
+- Always check voltage with multimeter before connecting
 
-## Licence
+## License
 
-MIT License - viz LICENSE soubor pro detaily.
+MIT License - see LICENSE file for details.
 
-## Autor
+## Author
 
-Původní implementace portována z ATtiny13A na Raspberry Pi s pigpio knihovnou.
+Original implementation ported from ATtiny13A to Raspberry Pi with pigpio library.
 
 ## Changelog
 
 ### v1.1 (2025-09-03)
-- ✅ Konfigurovatelné GPIO piny přes CFLAGS
-- ✅ Konfigurovatelný interval měření z CLI
-- ✅ Vylepšené Makefile příkazy
-- ✅ Přidán README.md
-- ✅ Bezpečnostní upozornění pro 3.3V napájení
+- ✅ Configurable GPIO pins via CFLAGS
+- ✅ Configurable measurement interval from CLI
+- ✅ Improved Makefile commands
+- ✅ Added README.md
+- ✅ Security warning for 3.3V power
 
 ### v1.0 (2025-08-28)
-- ✅ Základní TM1637 implementace
-- ✅ Čtení teploty z externího senzoru  
-- ✅ Systemd service podpora
-- ✅ Hardware validace pull-up rezistorů
+- ✅ Basic TM1637 implementation
+- ✅ Temperature reading from external sensor
+- ✅ Systemd service support
+- ✅ Hardware validation of pull-up resistors
 
-## Podpora
+## Support
 
-Pro hlášení chyb nebo návrhy vylepšení vytvořte issue v repositáři nebo kontaktujte autora.
+For bug reports or feature suggestions, create an issue in the repository or contact the author.
