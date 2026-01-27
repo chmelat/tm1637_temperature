@@ -3,19 +3,38 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "get_temp.h"
 #include "tm1637_rpi_pigpio.h"
 
 #define DEFAULT_INTERVAL 60
 
-static volatile bool running = true;
+static volatile sig_atomic_t running = 1;
 
 void sigint_handler(int sig) {
     (void)sig;
-    running = false;
+    running = 0;
+}
+
+/*
+ * Parse interval argument with validation
+ * Returns interval value on success, -1 on error
+ */
+static int parse_interval(const char *str) {
+    char *endptr;
+    errno = 0;
+    long val = strtol(str, &endptr, 10);
+
+    if (errno != 0 || endptr == str || *endptr != '\0') {
+        return -1;  /* Conversion error or trailing characters */
+    }
+    if (val <= 0 || val > INT_MAX) {
+        return -1;  /* Out of valid range */
+    }
+    return (int)val;
 }
 
 /*
@@ -40,18 +59,18 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "i:h")) != -1) {
         switch (opt) {
             case 'i':
-                interval = atoi(optarg);
-                if (interval <= 0) {
-                    fprintf(stderr, "Error: Interval must be a positive number\n");
-                    return 1;
+                interval = parse_interval(optarg);
+                if (interval < 0) {
+                    fprintf(stderr, "Error: Interval must be a positive integer\n");
+                    return EXIT_FAILURE;
                 }
                 break;
             case 'h':
                 print_usage(argv[0]);
-                return 0;
+                return EXIT_SUCCESS;
             case '?':
                 print_usage(argv[0]);
-                return 1;
+                return EXIT_FAILURE;
         }
     }
 
@@ -65,8 +84,8 @@ int main(int argc, char *argv[]) {
 
     // Initialization
     if (TM1637_init() < 0) {
-        printf("Error initializing pigpio library!\n");
-        return -1;
+        fprintf(stderr, "Error initializing pigpio library!\n");
+        return EXIT_FAILURE;
     }
 
 
@@ -87,5 +106,5 @@ int main(int argc, char *argv[]) {
 
     printf("\nExiting program...\n");
     TM1637_cleanup();
-    return 0;
+    return EXIT_SUCCESS;
 }

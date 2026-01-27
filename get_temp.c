@@ -31,7 +31,6 @@ int16_t get_temp() {
 
   // Read first line
   if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-    printf("%s\n",buffer);
     // Find first float in line
     if (sscanf(buffer, "%f", &temp) == 1) {
       if (pclose(fp) != 0) {

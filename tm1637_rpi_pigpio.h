@@ -1,5 +1,10 @@
 /*  Declare of global functions */
 
+#ifndef TM1637_RPI_PIGPIO_H
+#define TM1637_RPI_PIGPIO_H
+
+#include <stdint.h>
+
 // GPIO pin configuration (can be overridden at compile time)
 #ifndef DIO_PIN
 #define DIO_PIN  24
@@ -12,4 +17,6 @@
 extern int TM1637_init();
 extern void TM1637_cleanup();
 extern int TM1637_write_num(int16_t num);
-extern int TM1637_write_err(); 
+extern int TM1637_write_err();
+
+#endif /* TM1637_RPI_PIGPIO_H */ 
