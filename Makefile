@@ -1,145 +1,45 @@
-# Makefile pro TM1637 driver pro Raspberry Pi
-# Kompatibilni s RPi1 a RPi5, vyžaduje pigpio knihovnu
-#
-# Použití:
-#   make              - kompilace
-#   make install      - instalace do /usr/local/bin
-#   make uninstall    - odinstalace
-#   make clean        - vyčištění
-#   make install-pigpio - instalace pigpio knihovny
-#   make run          - kompilace a spuštění
+# Makefile pro TM1637 teploměr (libgpiod)
 
-# Kompiler a flags
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -O2
-LDFLAGS = -lpigpio -lrt -lpthread
+LDFLAGS = -lgpiod
 
-# Instalační adresář
-PREFIX = /usr/local
-BINDIR = $(PREFIX)/bin
-
-# Názvy souborů
 TARGET = tm1637_temperature
-SOURCE = tm1637_rpi_pigpio.c get_temp.c main.c
-OBJECT = $(SOURCE:.c=.o)
-HEAD = tm1637_rpi_pigpio.h get_temp.h
+SOURCES = tm1637_gpiod.c get_temp.c main.c
+OBJECTS = $(SOURCES:.c=.o)
+HEADERS = tm1637_gpiod.h get_temp.h
 
-# Hlavní cíl - kompilace
-$(TARGET): $(OBJECT)
-	$(CC) $(OBJECT) -o $(TARGET) $(LDFLAGS)
-	@echo "Kompilace dokončena. Spusťte: sudo ./$(TARGET)"
+PREFIX = /usr/local/bin
 
-# Kompilace objektového souboru
-%.o: %.c $(HEAD) Makefile
+$(TARGET): $(OBJECTS)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Vyčištění složky
 clean:
-	rm -f $(OBJECT) $(TARGET)
-	@echo "Vyčištění dokončeno"
+	rm -f $(OBJECTS) $(TARGET)
 
-# Instalace programu do /usr/local/bin
 install: $(TARGET)
-	@echo "Instalace $(TARGET) do $(BINDIR)..."
-	sudo install -m 755 $(TARGET) $(BINDIR)/$(TARGET)
-	@echo "Instalace dokončena: $(BINDIR)/$(TARGET)"
+	install -m 755 $(TARGET) $(PREFIX)/
 
-# Instalace systemd služby
 install-service: install
-	@echo "Instalace systemd služby..."
-	sudo cp $(TARGET).service /etc/systemd/system/
-	sudo systemctl daemon-reload
-	sudo systemctl enable $(TARGET)
-	sudo systemctl start $(TARGET)
-	@echo "Služba $(TARGET) nainstalována a spuštěna"
+	cp $(TARGET).service /etc/systemd/system/
+	systemctl daemon-reload
+	systemctl enable --now $(TARGET)
 
-# Odinstalace programu
 uninstall:
-	@echo "Odinstalace $(TARGET)..."
-	-sudo systemctl stop $(TARGET) 2>/dev/null
-	-sudo systemctl disable $(TARGET) 2>/dev/null
-	-sudo rm -f /etc/systemd/system/$(TARGET).service
-	-sudo systemctl daemon-reload 2>/dev/null
-	sudo rm -f $(BINDIR)/$(TARGET)
-	@echo "Odinstalace dokončena"
+	-systemctl disable --now $(TARGET) 2>/dev/null
+	-rm -f /etc/systemd/system/$(TARGET).service $(PREFIX)/$(TARGET)
+	-systemctl daemon-reload
 
-# Spuštění programu (vyžaduje sudo)
-run: $(TARGET)
-	@echo "Spouštění programu..."
-	sudo ./$(TARGET)
-
-# Spuštění s vlastním intervalem (příklad)
-run-fast: $(TARGET)
-	@echo "Spouštění s intervalem 10 sekund..."
-	sudo ./$(TARGET) -i 10
-
-# Kontrola instalace pigpio
-check-pigpio:
-	@echo "Kontrola pigpio knihovny..."
-	@pkg-config --exists libpigpio || (echo "pigpio není nainstalováno. Spusťte: make install-pigpio" && exit 1)
-	@echo "pigpio je dostupné"
-
-# Instalace pigpio knihovny (pro Debian/Raspbian)
-install-pigpio:
-	@echo "Instalace pigpio knihovny..."
-	sudo apt update
-	sudo apt install -y libpigpio-dev libpigpio1
-
-# Debug verze s debug symboly
 debug: CFLAGS += -g -DDEBUG
 debug: clean $(TARGET)
-	@echo "Debug verze zkompilována"
 
-# Informace o systému
-info:
-	@echo "=== Systémové informace ==="
-	@echo "Kompiler: $(CC)"
-	@echo "Flags: $(CFLAGS)"
-	@echo "Linker flags: $(LDFLAGS)"
-	@echo "Cílový soubor: $(TARGET)"
-	@echo "Zdrojový soubor: $(SOURCE)"
-	@echo ""
-	@echo "=== GPIO piny (výchozí) ==="
-	@grep -E "#define.*PIN" tm1637_rpi_pigpio.h
-	@echo ""
-	@echo "=== Hardware připojení ==="
-	@echo "TM1637 VCC -> RPi 3.3V"
-	@echo "TM1637 GND -> RPi GND"
-	@echo "TM1637 CLK -> RPi GPIO 23 + 4.7kΩ pull-up na 3.3V"
-	@echo "TM1637 DIO -> RPi GPIO 24 + 4.7kΩ pull-up na 3.3V"
-
-# Kontrola syntaxe bez kompilace
 syntax-check:
-	$(CC) $(CFLAGS) -fsyntax-only $(SOURCE)
-	@echo "Syntax check OK"
+	$(CC) $(CFLAGS) -fsyntax-only $(SOURCES)
 
-# All cíl
-all: clean $(TARGET)
+check-libgpiod:
+	@pkg-config --exists libgpiod && echo "libgpiod OK" || echo "libgpiod chybí: sudo apt install libgpiod-dev"
 
-# Help
-help:
-	@echo "Dostupné příkazy:"
-	@echo "  make              - kompilace programu"
-	@echo "  make install      - instalace do $(BINDIR)"
-	@echo "  make install-service - instalace + systemd služba"
-	@echo "  make uninstall    - kompletní odinstalace (vč. systemd)"
-	@echo "  make clean        - vyčištění objektových souborů"
-	@echo "  make run          - kompilace a spuštění (60s interval)"
-	@echo "  make run-fast     - spuštění s intervalem 10s"
-	@echo "  make debug        - kompilace debug verze"
-	@echo "  make install-pigpio - instalace pigpio knihovny"
-	@echo "  make check-pigpio - kontrola pigpio"
-	@echo "  make syntax-check - kontrola syntaxe"
-	@echo "  make info         - informace o projektu"
-	@echo "  make help         - zobrazí tuto nápovědu"
-	@echo ""
-	@echo "Vlastní konfigurace:"
-	@echo "  sudo ./$(TARGET) -i 30     - spuštění s intervalem 30s"
-	@echo "  sudo ./$(TARGET) -h        - zobrazí nápovědu programu"
-	@echo "  make CFLAGS=\"-DDIO_PIN=18 -DCLK_PIN=19\" - jiné GPIO piny"
-
-# Phony targets (nejsou soubory)
-.PHONY: clean install install-service uninstall run run-fast check-pigpio install-pigpio debug info syntax-check all help
-
-# Výchozí cíl při spuštění make bez parametrů
-.DEFAULT_GOAL := $(TARGET)
+.PHONY: clean install install-service uninstall debug syntax-check check-libgpiod

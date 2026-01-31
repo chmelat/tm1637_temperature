@@ -1,12 +1,12 @@
 [Unit]
 Description=TM1637 Temperature Display Service
-After=multi-user.target
 StartLimitIntervalSec=86400
 StartLimitBurst=2
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/tm1637_temperature -i 60
+User=root
+ExecStart=/usr/local/bin/tm1637_temperature
 Restart=always
 RestartSec=600
 StandardOutput=journal

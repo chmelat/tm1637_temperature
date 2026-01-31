@@ -1,7 +1,7 @@
-/*  Declare of global functions */
+/*  TM1637 driver using libgpiod */
 
-#ifndef TM1637_RPI_PIGPIO_H
-#define TM1637_RPI_PIGPIO_H
+#ifndef TM1637_GPIOD_H
+#define TM1637_GPIOD_H
 
 #include <stdint.h>
 
@@ -14,9 +14,9 @@
 #define CLK_PIN  23
 #endif
 
-extern int TM1637_init();
-extern void TM1637_cleanup();
+extern int TM1637_init(void);
+extern void TM1637_cleanup(void);
 extern int TM1637_write_num(int16_t num);
-extern int TM1637_write_err();
+extern int TM1637_write_err(void);
 
-#endif /* TM1637_RPI_PIGPIO_H */ 
+#endif /* TM1637_GPIOD_H */

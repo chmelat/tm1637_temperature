@@ -112,7 +112,7 @@ sudo systemd-analyze verify /etc/systemd/system/tm1637_temperature.service
 
 - TM1637 CLK → GPIO 23 + 4.7kΩ pull-up to 3.3V
 - TM1637 DIO → GPIO 24 + 4.7kΩ pull-up to 3.3V
-- External temperature sensor binary `r4dcb08` in project directory
+- External temperature sensor binary `r4dcb08` in `/usr/local/bin/`
 - Root/sudo access for GPIO operations
 
 ## Notes

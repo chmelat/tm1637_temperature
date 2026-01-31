@@ -8,7 +8,7 @@
 #include <limits.h>
 
 #include "get_temp.h"
-#include "tm1637_rpi_pigpio.h"
+#include "tm1637_gpiod.h"
 
 #define DEFAULT_INTERVAL 60
 
@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Temperature display on TM1637 display on Raspberry Pi 1 (pigpio)\n");
-    printf("==================================================================\n");
+    printf("Temperature display on TM1637 display (libgpiod)\n");
+    printf("=================================================\n");
     printf("Measurement interval: %d seconds\n", interval);
     printf("Press Ctrl+C to exit\n\n");
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     // Initialization
     if (TM1637_init() < 0) {
-        fprintf(stderr, "Error initializing pigpio library!\n");
+        fprintf(stderr, "Error initializing TM1637!\n");
         return EXIT_FAILURE;
     }
 
