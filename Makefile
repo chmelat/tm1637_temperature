@@ -2,15 +2,21 @@
 # Kompatibilni s RPi1 a RPi5, vyžaduje pigpio knihovnu
 #
 # Použití:
-#   make          - kompilace
-#   make clean    - vyčištění
-#   make install  - instalace pigpio (pokud není nainstalováno)
-#   make run      - kompilace a spuštění
+#   make              - kompilace
+#   make install      - instalace do /usr/local/bin
+#   make uninstall    - odinstalace
+#   make clean        - vyčištění
+#   make install-pigpio - instalace pigpio knihovny
+#   make run          - kompilace a spuštění
 
 # Kompiler a flags
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -O2
 LDFLAGS = -lpigpio -lrt -lpthread
+
+# Instalační adresář
+PREFIX = /usr/local
+BINDIR = $(PREFIX)/bin
 
 # Názvy souborů
 TARGET = tm1637_temperature
@@ -31,6 +37,31 @@ $(TARGET): $(OBJECT)
 clean:
 	rm -f $(OBJECT) $(TARGET)
 	@echo "Vyčištění dokončeno"
+
+# Instalace programu do /usr/local/bin
+install: $(TARGET)
+	@echo "Instalace $(TARGET) do $(BINDIR)..."
+	sudo install -m 755 $(TARGET) $(BINDIR)/$(TARGET)
+	@echo "Instalace dokončena: $(BINDIR)/$(TARGET)"
+
+# Instalace systemd služby
+install-service: install
+	@echo "Instalace systemd služby..."
+	sudo cp $(TARGET).service /etc/systemd/system/
+	sudo systemctl daemon-reload
+	sudo systemctl enable $(TARGET)
+	sudo systemctl start $(TARGET)
+	@echo "Služba $(TARGET) nainstalována a spuštěna"
+
+# Odinstalace programu
+uninstall:
+	@echo "Odinstalace $(TARGET)..."
+	-sudo systemctl stop $(TARGET) 2>/dev/null
+	-sudo systemctl disable $(TARGET) 2>/dev/null
+	-sudo rm -f /etc/systemd/system/$(TARGET).service
+	-sudo systemctl daemon-reload 2>/dev/null
+	sudo rm -f $(BINDIR)/$(TARGET)
+	@echo "Odinstalace dokončena"
 
 # Spuštění programu (vyžaduje sudo)
 run: $(TARGET)
@@ -89,6 +120,9 @@ all: clean $(TARGET)
 help:
 	@echo "Dostupné příkazy:"
 	@echo "  make              - kompilace programu"
+	@echo "  make install      - instalace do $(BINDIR)"
+	@echo "  make install-service - instalace + systemd služba"
+	@echo "  make uninstall    - kompletní odinstalace (vč. systemd)"
 	@echo "  make clean        - vyčištění objektových souborů"
 	@echo "  make run          - kompilace a spuštění (60s interval)"
 	@echo "  make run-fast     - spuštění s intervalem 10s"
@@ -105,7 +139,7 @@ help:
 	@echo "  make CFLAGS=\"-DDIO_PIN=18 -DCLK_PIN=19\" - jiné GPIO piny"
 
 # Phony targets (nejsou soubory)
-.PHONY: clean run run-fast check-pigpio install-pigpio debug info syntax-check all help
+.PHONY: clean install install-service uninstall run run-fast check-pigpio install-pigpio debug info syntax-check all help
 
 # Výchozí cíl při spuštění make bez parametrů
 .DEFAULT_GOAL := $(TARGET)

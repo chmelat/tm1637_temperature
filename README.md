@@ -29,7 +29,7 @@ Temperature display on 4-digit 7-segment TM1637 display for Raspberry Pi using t
 - 2x 4.7kΩ pull-up resistors
 
 ### External Temperature Sensor
-- Binary `r4dcb08` for temperature reading
+- Binary `r4dcb08` installed in `/usr/local/bin/`
 - Output in float format to stdout
 
 ## Hardware Wiring
@@ -64,13 +64,7 @@ GND ─────────────────────────�
 
 ## Installation
 
-### 1. Clone Project
-```bash
-cd /home/tch/tm1637_temperature
-# or copy files manually
-```
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 ```bash
 # Install pigpio library
 sudo apt update
@@ -80,9 +74,22 @@ sudo apt install -y libpigpio-dev libpigpio1
 make install-pigpio
 ```
 
-### 3. Verify Installation
+### 2. Verify pigpio Installation
 ```bash
 make check-pigpio
+```
+
+### 3. Compile and Install
+```bash
+make
+sudo make install
+```
+
+This installs `tm1637_temperature` to `/usr/local/bin/`.
+
+To uninstall:
+```bash
+sudo make uninstall
 ```
 
 ## Compilation
@@ -105,6 +112,9 @@ make debug
 ### Available Makefile Commands
 ```bash
 make              # compile program
+make install      # install to /usr/local/bin
+make install-service # install + enable systemd service
+make uninstall    # complete uninstall (incl. systemd)
 make clean        # clean object files
 make run          # compile and run (60s interval)
 make run-fast     # run with 10s interval
@@ -121,14 +131,14 @@ make help         # display help
 ### Basic Run
 ```bash
 # Default 60 second interval
-sudo ./tm1637_temperature
+sudo tm1637_temperature
 
 # With custom interval
-sudo ./tm1637_temperature -i 30    # 30 seconds
-sudo ./tm1637_temperature -i 120   # 2 minutes
+sudo tm1637_temperature -i 30    # 30 seconds
+sudo tm1637_temperature -i 120   # 2 minutes
 
 # Display help
-./tm1637_temperature -h
+tm1637_temperature -h
 ```
 
 ### Example Output
@@ -146,17 +156,22 @@ TM1637 pins validated and initialized (GPIO 24=DIO, GPIO 23=CLK)
 
 #### Service Installation
 ```bash
-# Copy service file
+# Automatic installation (compile, install, enable, start)
+make install-service
+```
+
+Or manually:
+```bash
 sudo cp tm1637_temperature.service /etc/systemd/system/
-
-# Reload systemd
 sudo systemctl daemon-reload
-
-# Enable automatic startup
 sudo systemctl enable tm1637_temperature
-
-# Start service
 sudo systemctl start tm1637_temperature
+```
+
+#### Complete Uninstall
+```bash
+# Removes binary and systemd service
+make uninstall
 ```
 
 #### Service Management
@@ -196,7 +211,7 @@ sudo ./tm1637_temperature -i 300    # 5 minutes
 To change arguments in service file, edit:
 
 ```ini
-ExecStart=/home/tch/tm1637_temperature/tm1637_temperature -i 30
+ExecStart=/usr/local/bin/tm1637_temperature -i 30
 ```
 
 ## Project Architecture
@@ -229,7 +244,7 @@ TM1637_temperature/
 
 #### get_temp.c/.h
 - Interface for external temperature sensor
-- Calling `./r4dcb08 -f` command
+- Calling `/usr/local/bin/r4dcb08 -f` command
 - Parsing float values from stdout
 
 ## Troubleshooting
@@ -293,16 +308,16 @@ Check wiring of 4.7kΩ pull-up resistors to 3.3V
 **Displays "Err" on display**
 ```bash
 # Check presence of r4dcb08
-ls -la ./r4dcb08
+ls -la /usr/local/bin/r4dcb08
 
 # Test r4dcb08 manually
-./r4dcb08 -f
+/usr/local/bin/r4dcb08 -f
 ```
 
 **High CPU usage**
 ```bash
 # Check measurement interval
-sudo ./tm1637_temperature -i 60    # Longer interval
+sudo tm1637_temperature -i 60    # Longer interval
 ```
 
 ### Systemd Service Problems
@@ -327,7 +342,7 @@ sudo journalctl -u tm1637_temperature -n 50
 ### Debug Mode
 ```bash
 make debug
-sudo ./tm1637_temperature -i 5
+sudo tm1637_temperature -i 5
 ```
 
 ### Syntax Check
@@ -358,6 +373,13 @@ MIT License - see LICENSE file for details.
 Original implementation ported from ATtiny13A to Raspberry Pi with pigpio library.
 
 ## Changelog
+
+### v1.2 (2026-01-31)
+- ✅ Installation to `/usr/local/bin` via `make install`
+- ✅ Binary `r4dcb08` expected in `/usr/local/bin/`
+- ✅ Updated systemd service for installed paths
+- ✅ Added `make install-service` for automatic systemd setup
+- ✅ Added `make uninstall` with complete cleanup (binary + systemd)
 
 ### v1.1 (2025-09-03)
 - ✅ Configurable GPIO pins via CFLAGS

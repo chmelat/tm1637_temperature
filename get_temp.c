@@ -7,8 +7,8 @@
 #include "get_temp.h"
 
 /*
- * Function reads temperature from stdout of command "./r4dcb08 -f", converts
- * it to integer three-digit number in units of [0.1C]
+ * Function reads temperature from stdout of command "/usr/local/bin/r4dcb08 -f",
+ * converts it to integer three-digit number in units of [0.1C]
  */
 int16_t get_temp() {
 
@@ -17,13 +17,13 @@ int16_t get_temp() {
   float temp;
 
   // Check existence of r4dcb08 binary
-  if (access("./r4dcb08", X_OK) != 0) {
+  if (access("/usr/local/bin/r4dcb08", X_OK) != 0) {
     fprintf(stderr, "Error: r4dcb08 binary not found or not executable\n");
-    fprintf(stderr, "       Please ensure r4dcb08 is in the current directory with execute permissions\n");
+    fprintf(stderr, "       Please ensure r4dcb08 is installed in /usr/local/bin/ with execute permissions\n");
     return TEMP_ERROR;
   }
 
-  fp = popen("./r4dcb08 -f", "r");  // Get temperature
+  fp = popen("/usr/local/bin/r4dcb08 -f", "r");  // Get temperature
   if (fp == NULL) {
     perror("Error: popen failed!");
     return TEMP_ERROR;
