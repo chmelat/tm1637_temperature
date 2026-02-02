@@ -1,6 +1,6 @@
-# TM1637 Temperature Display
+# TM1637 Temperature Display (MQTT)
 
-Temperature display on 4-digit 7-segment TM1637 display using libgpiod. Reads temperature from external sensor and displays with 0.1°C resolution.
+Temperature display on 4-digit 7-segment TM1637 display using libgpiod. Subscribes to MQTT broker for temperature data and displays with 0.1°C resolution.
 
 **Compatibility:** Any Linux SBC with /dev/gpiochip0 (Raspberry Pi 1-5, Orange Pi, etc.)
 
@@ -44,8 +44,8 @@ Pull-up resistors (4.7kΩ) are mandatory for open-drain communication.
 ## Build
 
 ```bash
-# Install dependency
-sudo apt install libgpiod-dev
+# Install dependencies
+sudo apt install libgpiod-dev libmosquitto-dev
 
 # Compile
 make
@@ -60,10 +60,57 @@ sudo make install-service
 ## Usage
 
 ```bash
-sudo tm1637_temperature           # default 60s interval
-sudo tm1637_temperature -i 30     # 30s interval
-sudo tm1637_temperature -h        # help
+./tm1637_temperature -b <broker> -t <topic> [-p port] [-i interval] [-h]
+
+Options:
+  -b broker   MQTT broker hostname/IP (required)
+  -t topic    MQTT topic for temperature (required)
+  -p port     MQTT port (default: 1883)
+  -i interval Display update interval in seconds (default: 60)
+  -h          Display this help
 ```
+
+### Examples
+
+```bash
+# Basic usage
+sudo ./tm1637_temperature -b 192.168.200.12 -t sensors/r4dcb08/1/temperature/ch1
+
+# Custom port and interval
+sudo ./tm1637_temperature -b mqtt.local -t home/temperature -p 1884 -i 5
+```
+
+### Testing with mosquitto_pub
+
+```bash
+# Publish test temperature
+mosquitto_pub -h 192.168.200.12 -t sensors/r4dcb08/1/temperature/ch1 -m "23.5"
+mosquitto_pub -h 192.168.200.12 -t sensors/r4dcb08/1/temperature/ch1 -m "-5.2"
+```
+
+### Display states
+
+- `----` - Waiting for first MQTT message
+- `23.5` - Normal temperature display (with decimal point)
+- `-5.2` - Negative temperature
+- `Err` - Parse error (invalid MQTT payload)
+- `OFL` - Overflow (temperature out of display range ±99.9°C)
+- `OLd` - Stale data (no message received within watchdog timeout)
+
+## Watchdog
+
+Program includes a watchdog that detects stale data. If no valid MQTT message is received within the timeout period, display shows `OLd`.
+
+**Timeout:** `interval × 2` (default: 120s)
+
+**What watchdog detects:**
+- Connection loss between subscriber and broker
+- Broker crash/restart
+
+**What watchdog does NOT detect:**
+- Publisher stopped (if using retained messages, the old retained value appears fresh)
+
+For immediate detection of publisher status, the publisher should send to a `status` topic with Last Will and Testament (LWT) set to `offline`.
 
 ## Custom GPIO pins
 
@@ -77,12 +124,20 @@ make CFLAGS="-DDIO_PIN=18 -DCLK_PIN=19"
 main.c           - main loop, CLI, signal handling
 tm1637_gpiod.c   - TM1637 protocol via libgpiod
 tm1637_gpiod.h   - API and pin definitions
-get_temp.c       - reads temperature from /usr/local/bin/r4dcb08
-get_temp.h       - TEMP_ERROR constant
+mqtt_temp.c      - MQTT subscriber (libmosquitto)
+mqtt_temp.h      - MQTT API, TEMP_ERROR/TEMP_NO_DATA constants
 ```
 
 ## Systemd
 
+The service file needs to be configured with your MQTT broker and topic before installation.
+
+Edit `tm1637_temperature.service`:
+```ini
+ExecStart=/usr/local/bin/tm1637_temperature -b YOUR_BROKER -t YOUR_TOPIC
+```
+
+Then install:
 ```bash
 # Install and enable
 sudo make install-service
@@ -106,9 +161,25 @@ sudo make uninstall
 - Connect 4.7kΩ resistors between GPIO pins and 3.3V
 - Check wiring with multimeter
 
+**"Unable to connect to MQTT broker"**
+- Check broker is running: `mosquitto_pub -h BROKER -t test -m test`
+- Verify network connectivity: `ping BROKER`
+- Check firewall allows port 1883
+
+**Display shows "----" permanently**
+- No MQTT messages received yet
+- Verify topic is correct: `mosquitto_sub -h BROKER -t TOPIC`
+- Check broker logs
+
 **Display shows "Err"**
-- Check `/usr/local/bin/r4dcb08` exists and works
-- Test: `/usr/local/bin/r4dcb08 -f`
+- MQTT payload is not a valid float
+- Expected format: "23.5", "-5.2", "100"
+
+**Display shows "OLd"**
+- No MQTT message received within watchdog timeout (default 120s)
+- Check publisher is running
+- Check network connectivity to broker
+- Verify topic with: `mosquitto_sub -h BROKER -t TOPIC`
 
 ## License
 

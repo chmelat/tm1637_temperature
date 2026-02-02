@@ -1,13 +1,13 @@
-# Makefile pro TM1637 teploměr (libgpiod)
+# Makefile pro TM1637 teploměr (libgpiod + MQTT)
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -O2
-LDFLAGS = -lgpiod
+CFLAGS = -Wall -Wextra -std=c99 -O2 -D_DEFAULT_SOURCE
+LDFLAGS = -lgpiod -lmosquitto
 
 TARGET = tm1637_temperature
-SOURCES = tm1637_gpiod.c get_temp.c main.c
+SOURCES = tm1637_gpiod.c mqtt_temp.c main.c
 OBJECTS = $(SOURCES:.c=.o)
-HEADERS = tm1637_gpiod.h get_temp.h
+HEADERS = tm1637_gpiod.h mqtt_temp.h
 
 PREFIX = /usr/local/bin
 
@@ -39,7 +39,8 @@ debug: clean $(TARGET)
 syntax-check:
 	$(CC) $(CFLAGS) -fsyntax-only $(SOURCES)
 
-check-libgpiod:
-	@pkg-config --exists libgpiod && echo "libgpiod OK" || echo "libgpiod chybí: sudo apt install libgpiod-dev"
+check-deps:
+	@pkg-config --exists libgpiod && echo "libgpiod OK" || echo "MISSING: sudo apt install libgpiod-dev"
+	@pkg-config --exists libmosquitto && echo "libmosquitto OK" || echo "MISSING: sudo apt install libmosquitto-dev"
 
-.PHONY: clean install install-service uninstall debug syntax-check check-libgpiod
+.PHONY: clean install install-service uninstall debug syntax-check check-deps

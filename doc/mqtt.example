@@ -1,0 +1,57 @@
+tch@pi:~$ mosquitto_sub -h 192.168.200.12 -t "#" -v
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.8
+sensors/r4dcb08/1/timestamp 2026-02-02 08:40:44.39
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.8
+sensors/r4dcb08/1/timestamp 2026-02-02 08:40:54.46
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.8
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:04.56
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.7
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:14.64
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.7
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:24.72
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:34.80
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/diagnostics {"uptime":50,"reads":{"total":6,"success":6,"failure":0},"mqtt_reconnects":0,"consecutive_errors":0}
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:44.89
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:41:54.98
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:42:05.07
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:42:15.16
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:42:25.25
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.6
+sensors/r4dcb08/1/timestamp 2026-02-02 08:42:35.34
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/diagnostics {"uptime":111,"reads":{"total":12,"success":12,"failure":0},"mqtt_reconnects":0,"consecutive_errors":0}
+sensors/r4dcb08/1/temperature/ch1 -2.3
+sensors/r4dcb08/1/temperature/ch2 46.5
+sensors/r4dcb08/1/timestamp 2026-02-02 08:42:45.42
+sensors/r4dcb08/1/status online
+sensors/r4dcb08/1/status offline

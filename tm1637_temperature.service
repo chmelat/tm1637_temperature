@@ -1,14 +1,16 @@
 [Unit]
-Description=TM1637 Temperature Display Service
+Description=TM1637 Temperature Display Service (MQTT)
+After=network-online.target
+Wants=network-online.target
 StartLimitIntervalSec=86400
-StartLimitBurst=2
+StartLimitBurst=5
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/tm1637_temperature
+ExecStart=/usr/local/bin/tm1637_temperature -b 192.168.200.12 -t sensors/r4dcb08/1/temperature/ch1
 Restart=always
-RestartSec=600
+RestartSec=30
 StandardOutput=journal
 StandardError=journal
 

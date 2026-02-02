@@ -18,5 +18,7 @@ extern int TM1637_init(void);
 extern void TM1637_cleanup(void);
 extern int TM1637_write_num(int16_t num);
 extern int TM1637_write_err(void);
+extern int TM1637_write_waiting(void);
+extern int TM1637_write_stale(void);
 
 #endif /* TM1637_GPIOD_H */

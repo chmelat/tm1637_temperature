@@ -197,3 +197,23 @@ int TM1637_write_err(void) {
 
     return (TM1637_send(buf, 4) == ACK) ? 0 : -1;
 }
+
+int TM1637_write_waiting(void) {
+    buf[0] = ADR;
+    buf[1] = 0x40;  /* - */
+    buf[2] = 0x40;  /* - */
+    buf[3] = 0x40;  /* - */
+    buf[4] = 0x40;  /* - */
+
+    return (TM1637_send(buf, 5) == ACK) ? 0 : -1;
+}
+
+int TM1637_write_stale(void) {
+    buf[0] = ADR;
+    buf[1] = 0x00;  /* (space) */
+    buf[2] = 0x3F;  /* O */
+    buf[3] = 0x38;  /* L */
+    buf[4] = 0x5E;  /* d */
+
+    return (TM1637_send(buf, 5) == ACK) ? 0 : -1;
+}
